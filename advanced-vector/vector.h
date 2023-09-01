@@ -42,7 +42,6 @@ public:
     }
 
     T* operator+(size_t offset) noexcept {
-        // Разрешается получать адрес ячейки памяти, следующей за последним элементом массива
         assert(offset <= capacity_);
         return buffer_ + offset;
     }
@@ -78,12 +77,10 @@ public:
     }
 
 private:
-    // Выделяет сырую память под n элементов и возвращает указатель на неё
     static T* Allocate(size_t n) {
         return n != 0 ? static_cast<T*>(operator new(n * sizeof(T))) : nullptr;
     }
 
-    // Освобождает сырую память, выделенную ранее по адресу buf при помощи Allocate
     static void Deallocate(T* buf) noexcept {
         operator delete(buf);
     }
@@ -99,7 +96,7 @@ public:
 
     explicit Vector(size_t size)
         : data_(size)
-        , size_(size)  //
+        , size_(size)
     {
         std::uninitialized_value_construct_n(data_.GetAddress(), size);
     }
@@ -137,8 +134,7 @@ public:
     const_iterator end() const noexcept {
         return cend();
     }
-    
-    
+        
     void Reserve(size_t new_capacity) {
         if (new_capacity <= data_.Capacity()) {
             return;
@@ -165,8 +161,6 @@ public:
                 Swap(rhs_copy);
             }
             else {
-                /* Скопировать элементы из rhs, создав при необходимости новые
-                   или удалив существующие */
                 size_t i = 0;
                 if (rhs.size_ < size_) {
                     for (; i != rhs.size_; ++i) {
@@ -219,7 +213,7 @@ public:
         size_ = new_size;
     }
         
-    void PopBack() /* noexcept */ {
+    void PopBack() {
         assert(size_ != 0);
         Destroy(data_.GetAddress() + size_ - 1);
         --size_;
@@ -301,7 +295,6 @@ public:
         return &data_[dist];
     }
 
-
     iterator Insert(const_iterator pos, const T& value) {
         return Emplace(pos, value);
     }
@@ -335,15 +328,11 @@ private:
     RawMemory<T> data_;
     size_t size_ = 0;
 
-    // Создаёт копию объекта elem в сырой памяти по адресу buf
     static void CopyConstruct(T* buf, const T& elem) {
         new (buf) T(elem);
     }
 
-    // Вызывает деструктор объекта по адресу buf
     static void Destroy(T* buf) noexcept {
         buf->~T();
     }
-
-
 };
